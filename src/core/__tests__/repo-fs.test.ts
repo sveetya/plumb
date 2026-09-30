@@ -48,4 +48,16 @@ describe("repo-fs", () => {
       resolveProjectRoot("/var", { LAMBDA_TASK_ROOT: root }),
     ).toBe(root)
   })
+
+  it("keeps architecture and umami inside the project when env points at a parent", async () => {
+    const { loadConfig } = await import("../../server/config")
+    const config = loadConfig({
+      PLUMB_ARCH_DIR: "../architecture",
+      PLUMB_TARGET_REPO: "../umami",
+    } as unknown as NodeJS.ProcessEnv)
+    expect(config.archDir.includes("..")).toBe(false)
+    expect(config.targetRepo.includes("..")).toBe(false)
+    expect(config.archDir.replaceAll("\\", "/").endsWith("/architecture")).toBe(true)
+    expect(config.targetRepo.replaceAll("\\", "/").endsWith("/umami")).toBe(true)
+  })
 })

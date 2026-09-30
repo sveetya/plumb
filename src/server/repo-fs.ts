@@ -9,7 +9,7 @@ export function resolveProjectRoot(
   cwd: string,
   env: Record<string, string | undefined> = process.env,
 ): string {
-  const candidates = [env.LAMBDA_TASK_ROOT, cwd, "/var/task"].filter(
+  const candidates = [cwd, env.LAMBDA_TASK_ROOT, "/var/task"].filter(
     (value): value is string => Boolean(value && value.length > 0),
   )
   for (const dir of candidates) {

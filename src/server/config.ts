@@ -15,8 +15,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): PlumbConfig {
   const fileEnv = readEnvFile(joinRoot(root, ".env.local"))
   const merged = { ...fileEnv, ...definedEnv(env) }
   return {
-    archDir: joinRoot(root, merged.PLUMB_ARCH_DIR ?? "architecture"),
-    targetRepo: joinRoot(root, merged.PLUMB_TARGET_REPO ?? "umami"),
+    archDir: projectDir(root, merged.PLUMB_ARCH_DIR, "architecture"),
+    targetRepo: projectDir(root, merged.PLUMB_TARGET_REPO, "umami"),
     diffBase: merged.PLUMB_DIFF_BASE ?? "HEAD",
     supabaseUrl: emptyToUndefined(merged.NEXT_PUBLIC_SUPABASE_URL),
     supabasePublishableKey: emptyToUndefined(
@@ -56,4 +56,19 @@ function parseEnvText(text: string): Record<string, string> {
 
 function emptyToUndefined(value: string | undefined): string | undefined {
   return value && value.length > 0 ? value : undefined
+}
+
+function projectDir(root: string, value: string | undefined, fallback: string): string {
+  const name = value && isProjectRelative(value) ? value : fallback
+  return joinRoot(root, name)
+}
+
+function isProjectRelative(value: string): boolean {
+  return (
+    value.length > 0 &&
+    !value.startsWith("/") &&
+    !value.startsWith("\\") &&
+    !value.includes("..") &&
+    !/^[A-Za-z]:/.test(value)
+  )
 }
