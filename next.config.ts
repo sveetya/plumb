@@ -6,6 +6,13 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/*": ["./architecture/**/*", "./umami/**/*"],
   },
+  outputFileTracingExcludes: {
+    "/*": [
+      "./umami/node_modules/**",
+      "./umami/.git/**",
+      "./umami/.next/**",
+    ],
+  },
 }
 
 export default nextConfig

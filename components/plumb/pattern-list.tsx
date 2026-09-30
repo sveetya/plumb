@@ -80,7 +80,7 @@ export function PatternList({
         <CardHeader>
           <CardTitle>Patterns</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col gap-2">
+        <CardContent className="flex min-w-0 flex-col gap-2 overflow-hidden">
           {patterns.map((pattern) => (
             <PatternCard
               key={pattern.id}
@@ -118,28 +118,31 @@ function PatternCard({
   return (
     <Tooltip>
       <TooltipTrigger
+        type="button"
         delay={150}
         data-testid={`pattern-${pattern.id}`}
         onClick={onOpen}
-        className={`group w-full cursor-pointer rounded-xl border p-2 text-left text-xs transition-colors hover:border-foreground/20 hover:bg-muted ${
+        className={`group w-full min-w-0 overflow-hidden cursor-pointer rounded-xl border p-2 text-left text-xs transition-colors hover:border-foreground/20 hover:bg-muted ${
           selected ? "ring-2 ring-primary" : ""
         }`}
       >
-        <div className="flex items-start justify-between gap-2">
-          <div className="font-medium">{pattern.label}</div>
+        <span className="flex min-w-0 items-start justify-between gap-2">
+          <span className="min-w-0 font-medium">{pattern.label}</span>
           <Info
             aria-hidden
             className="mt-0.5 size-3.5 shrink-0 text-muted-foreground opacity-80 group-hover:text-foreground"
           />
-        </div>
-        <div className="mt-1 text-muted-foreground">
+        </span>
+        <span className="mt-1 block text-muted-foreground">
           {pattern.nodeIds.length} nodes
-        </div>
-        <div className="mt-1 flex flex-col gap-0.5 font-mono text-[10px] text-muted-foreground">
+        </span>
+        <span className="mt-1 flex min-w-0 flex-col gap-0.5 overflow-hidden font-mono text-[10px] text-muted-foreground">
           {pattern.evidence.slice(0, 4).map((path) => (
-            <span key={path}>{path}</span>
+            <span key={path} className="block overflow-hidden text-ellipsis whitespace-nowrap">
+              {path}
+            </span>
           ))}
-        </div>
+        </span>
         {selected ? (
           <Badge variant="outline" className="mt-1">
             focused

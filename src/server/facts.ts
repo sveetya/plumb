@@ -1,17 +1,16 @@
-import { existsSync, readFileSync } from "node:fs"
-import path from "node:path"
 import { parse } from "yaml"
 import { normalize } from "../core/paths"
 import type { ComposeServiceFact, RepoFacts } from "../core/types"
+import { fileExists, readUtf8 } from "./repo-fs"
 
 export function readRepoFacts(root: string, files: string[]): RepoFacts {
   const normalized = files.map(normalize)
   const packageJsonPaths = normalized.filter(
     (file) => file.endsWith("package.json") && !file.includes("/node_modules/"),
   )
-  const rootPkg = readJsonObject(path.join(root, "package.json"))
-  const dbText = readText(path.join(root, "src/lib/db.ts"))
-  const prismaText = readText(path.join(root, "prisma/schema.prisma"))
+  const rootPkg = readJsonObject(root, "package.json")
+  const dbText = readText(root, "src/lib/db.ts")
+  const prismaText = readText(root, "prisma/schema.prisma")
   return {
     packageJsonPaths,
     dependencyNames: dependencyNames(rootPkg),
@@ -52,20 +51,20 @@ export function readRepoFacts(root: string, files: string[]): RepoFacts {
 }
 
 function readPatternSignals(root: string, files: string[]) {
-  const send = readText(path.join(root, "src/app/api/send/route.ts"))
-  const record = readText(path.join(root, "src/app/api/record/route.ts"))
-  const batch = readText(path.join(root, "src/app/api/batch/route.ts"))
-  const prisma = readText(path.join(root, "src/lib/prisma.ts"))
-  const redis = readText(path.join(root, "src/lib/redis.ts"))
-  const subscription = readText(path.join(root, "src/lib/subscription.ts"))
-  const mcp = readText(path.join(root, "src/app/mcp/route.ts"))
+  const send = readText(root, "src/app/api/send/route.ts")
+  const record = readText(root, "src/app/api/record/route.ts")
+  const batch = readText(root, "src/app/api/batch/route.ts")
+  const prisma = readText(root, "src/lib/prisma.ts")
+  const redis = readText(root, "src/lib/redis.ts")
+  const subscription = readText(root, "src/lib/subscription.ts")
+  const mcp = readText(root, "src/app/mcp/route.ts")
   const realtimeRel = files.find(
     (file) => file.includes("/api/realtime/") && file.endsWith("route.ts"),
   )
-  const realtime = realtimeRel ? readText(path.join(root, realtimeRel)) : ""
+  const realtime = realtimeRel ? readText(root, realtimeRel) : ""
   return {
     skipAuthRoutes: files.filter(
-      (file) => file.endsWith("route.ts") && readText(path.join(root, file)).includes("skipAuth"),
+      (file) => file.endsWith("route.ts") && readText(root, file).includes("skipAuth"),
     ),
     batchImportsSend: batch.includes("send.POST") || batch.includes("@/app/api/send/route"),
     ingestUsesIsbot: send.includes("isbot") && record.includes("isbot"),
@@ -81,7 +80,7 @@ function readPatternSignals(root: string, files: string[]) {
 
 function composeRaw(root: string): string {
   for (const rel of ["docker-compose.yml", "docker-compose.yaml"]) {
-    const text = readText(path.join(root, rel))
+    const text = readText(root, rel)
     if (text.length > 0) {
       return text
     }
@@ -121,7 +120,7 @@ function readComposeServices(root: string): ComposeServiceFact[] {
   if (!rel) {
     return []
   }
-  const parsed: unknown = parse(readText(path.join(root, rel)))
+  const parsed: unknown = parse(readText(root, rel))
   if (!parsed || typeof parsed !== "object") {
     return []
   }
@@ -147,7 +146,7 @@ function countRunQueryCalls(root: string, files: string[]): number {
         (file.startsWith("src/queries/") && file.endsWith(".ts")),
     )
     .reduce((sum, file) => {
-      const text = readText(path.join(root, file))
+      const text = readText(root, file)
       return sum + countToken(text, "runQuery(")
     }, 0)
 }
@@ -184,26 +183,27 @@ function isMigrationPath(file: string): boolean {
 }
 
 function existsPath(root: string, rel: string): boolean {
-  return existsSync(path.join(root, rel))
+  return fileExists(root, rel)
 }
 
 function existsAny(root: string, rels: string[]): boolean {
   return rels.some((rel) => existsPath(root, rel))
 }
 
-function readText(filePath: string): string {
-  if (!existsSync(filePath)) {
-    return ""
-  }
-  return readFileSync(filePath, "utf8")
+function readText(root: string, rel: string): string {
+  return readUtf8(root, rel)
 }
 
-function readJsonObject(filePath: string): Record<string, unknown> | undefined {
-  if (!existsSync(filePath)) {
+function readJsonObject(
+  root: string,
+  rel: string,
+): Record<string, unknown> | undefined {
+  const text = readUtf8(root, rel)
+  if (!text) {
     return undefined
   }
   try {
-    const parsed: unknown = JSON.parse(readFileSync(filePath, "utf8"))
+    const parsed: unknown = JSON.parse(text)
     return isRecord(parsed) ? parsed : undefined
   } catch {
     return undefined

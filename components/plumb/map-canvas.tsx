@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { useTheme } from "next-themes"
 import {
   Background,
   Controls,
@@ -34,6 +35,13 @@ export function MapCanvas({
   nodeStatus?: Record<string, NodeStatus>
   onSelectNode: (nodeId: string) => void
 }) {
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  const colorMode = mounted && resolvedTheme === "dark" ? "dark" : "light"
+
   const nodes = useMemo(
     () => toFlowNodes(snapshot, focus, nodeStatus),
     [focus, nodeStatus, snapshot],
@@ -61,7 +69,7 @@ export function MapCanvas({
           fitView
           minZoom={0.2}
           maxZoom={1.5}
-          colorMode="system"
+          colorMode={colorMode}
           proOptions={{ hideAttribution: true }}
           onNodeClick={(_event, node) => {
             if (node.type === "group") return

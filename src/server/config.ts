@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from "node:fs"
-import path from "node:path"
+import { joinRoot } from "./repo-fs"
 
 export type PlumbConfig = {
   archDir: string
@@ -11,12 +11,12 @@ export type PlumbConfig = {
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): PlumbConfig {
-  const fileEnv = readEnvFile(path.join(process.cwd(), ".env.local"))
+  const fileEnv = readEnvFile(joinRoot(process.cwd(), ".env.local"))
   const merged = { ...fileEnv, ...definedEnv(env) }
   const cwd = process.cwd()
   return {
-    archDir: path.resolve(cwd, merged.PLUMB_ARCH_DIR ?? "architecture"),
-    targetRepo: path.resolve(cwd, merged.PLUMB_TARGET_REPO ?? "umami"),
+    archDir: joinRoot(cwd, merged.PLUMB_ARCH_DIR ?? "architecture"),
+    targetRepo: joinRoot(cwd, merged.PLUMB_TARGET_REPO ?? "umami"),
     diffBase: merged.PLUMB_DIFF_BASE ?? "HEAD",
     supabaseUrl: emptyToUndefined(merged.NEXT_PUBLIC_SUPABASE_URL),
     supabasePublishableKey: emptyToUndefined(

@@ -29,8 +29,8 @@ export function PatternDetailDialog({
           className="sm:max-w-lg"
         >
           <DialogHeader>
-            <p className="text-xs text-muted-foreground">{explanation.hint}</p>
             <DialogTitle>{pattern.label}</DialogTitle>
+            <p className="text-xs text-muted-foreground">{explanation.hint}</p>
             <DialogDescription>{explanation.summary}</DialogDescription>
           </DialogHeader>
           {pattern.evidence.length > 0 ? (

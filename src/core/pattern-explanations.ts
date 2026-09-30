@@ -11,7 +11,9 @@ export type PatternExplanation = Readonly<{
   learnMore?: PatternLearnMore
 }>
 
-export const PATTERN_EXPLANATIONS: Record<PatternId, PatternExplanation> = {
+export const PATTERN_EXPLANATIONS: Readonly<
+  Record<PatternId, PatternExplanation>
+> = {
   "modular-monolith": {
     hint: "Plumb found one deployable app with several modules inside it.",
     summary:

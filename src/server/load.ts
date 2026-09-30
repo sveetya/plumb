@@ -1,29 +1,22 @@
-import { readFileSync } from "node:fs"
-import path from "node:path"
 import matter from "gray-matter"
 import { parse } from "yaml"
 import { parseArchitectureModel, parseIntent } from "../core/schema"
 import type { ArchitectureModel, Intent } from "../core/types"
+import { readUtf8Required } from "./repo-fs"
 
 export function loadModel(archDir: string): ArchitectureModel {
-  const raw = readFileSync(path.join(archDir, "model.yaml"), "utf8")
+  const raw = readUtf8Required(archDir, "model.yaml")
   return parseArchitectureModel(parse(raw))
 }
 
 export function loadIntent(archDir: string, intentId: string): Intent {
-  const raw = readFileSync(
-    path.join(archDir, "intents", `${intentId}.md`),
-    "utf8",
-  )
+  const raw = readUtf8Required(archDir, `intents/${intentId}.md`)
   const parsed = matter(raw)
   return parseIntent(parsed.data, parsed.content)
 }
 
 export function loadFixture(archDir: string, name: string): string[] {
-  const raw = readFileSync(
-    path.join(archDir, "demo", `${name}.files.txt`),
-    "utf8",
-  )
+  const raw = readUtf8Required(archDir, `demo/${name}.files.txt`)
   return raw
     .split(/\r?\n/)
     .map((line) => line.trim())
