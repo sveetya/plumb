@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
@@ -8,6 +8,7 @@ import {
   listDir,
   readUtf8,
   readUtf8Required,
+  resolveProjectRoot,
 } from "../../server/repo-fs"
 
 describe("repo-fs", () => {
@@ -37,5 +38,14 @@ describe("repo-fs", () => {
   it("throws when a required file is missing", () => {
     root = mkdtempSync(path.join(tmpdir(), "plumb-repo-fs-missing-"))
     expect(() => readUtf8Required(root, "model.yaml")).toThrow()
+  })
+
+  it("resolves the project root from Lambda task root when the model is there", () => {
+    root = mkdtempSync(path.join(tmpdir(), "plumb-repo-fs-root-"))
+    mkdirSync(path.join(root, "architecture"))
+    writeFileSync(path.join(root, "architecture", "model.yaml"), "name: demo\n", "utf8")
+    expect(
+      resolveProjectRoot("/var", { LAMBDA_TASK_ROOT: root }),
+    ).toBe(root)
   })
 })

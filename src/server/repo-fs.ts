@@ -2,7 +2,22 @@ import { existsSync, readdirSync, readFileSync, type Dirent } from "node:fs"
 import path from "node:path"
 
 export function joinRoot(root: string, ...segments: string[]): string {
-  return path.join(/* turbopackIgnore: true */ root, ...segments)
+  return path.join(root, ...segments)
+}
+
+export function resolveProjectRoot(
+  cwd: string,
+  env: Record<string, string | undefined> = process.env,
+): string {
+  const candidates = [env.LAMBDA_TASK_ROOT, cwd, "/var/task"].filter(
+    (value): value is string => Boolean(value && value.length > 0),
+  )
+  for (const dir of candidates) {
+    if (fileExists(dir, "architecture/model.yaml")) {
+      return dir
+    }
+  }
+  return cwd
 }
 
 export function fileExists(root: string, rel: string): boolean {
@@ -11,18 +26,16 @@ export function fileExists(root: string, rel: string): boolean {
 
 export function readUtf8(root: string, rel: string): string {
   const filePath = joinRoot(root, rel)
-  if (!existsSync(/* turbopackIgnore: true */ filePath)) {
+  if (!existsSync(filePath)) {
     return ""
   }
-  return readFileSync(/* turbopackIgnore: true */ filePath, "utf8")
+  return readFileSync(filePath, "utf8")
 }
 
 export function readUtf8Required(root: string, rel: string): string {
-  return readFileSync(/* turbopackIgnore: true */ joinRoot(root, rel), "utf8")
+  return readFileSync(joinRoot(root, rel), "utf8")
 }
 
 export function listDir(current: string): Dirent[] {
-  return readdirSync(/* turbopackIgnore: true */ current, {
-    withFileTypes: true,
-  })
+  return readdirSync(current, { withFileTypes: true })
 }
