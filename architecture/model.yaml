@@ -1,0 +1,230 @@
+version: 2
+name: umami-plumbing
+repo:
+  id: umami
+  github: umami-software/umami
+groups:
+  - id: next-app
+    label: Umami · Next.js app (single deployable)
+    position: { x: 260, y: 0 }
+    size: { width: 780, height: 640 }
+nodes:
+  - id: tracker
+    label: Browser tracker
+    kind: client
+    runtime: browser
+    tech: [typescript]
+    position: { x: 0, y: 120 }
+    anchors:
+      - src/tracker/
+      - rollup.tracker.config.js
+      - rollup.recorder.config.js
+      - src/lib/recorder.ts
+  - id: ingest-api
+    label: Collect API
+    kind: api
+    runtime: server
+    group: next-app
+    tech: [nextjs]
+    position: { x: 32, y: 48 }
+    anchors:
+      - src/app/api/send/
+      - src/app/api/batch/
+      - src/app/api/record/
+      - src/app/(collect)/
+      - src/lib/detect.ts
+  - id: sql-write
+    label: Event writes
+    kind: module
+    runtime: server
+    group: next-app
+    tech: [prisma, clickhouse]
+    position: { x: 32, y: 200 }
+    anchors:
+      - "src/queries/sql/**/save*.ts"
+      - "src/queries/sql/**/create*.ts"
+      - "src/queries/sql/**/update*.ts"
+  - id: dashboard-ui
+    label: Dashboard UI
+    kind: app
+    runtime: server
+    group: next-app
+    tech: [react]
+    position: { x: 528, y: 48 }
+    anchors:
+      - src/app/(main)/
+      - src/components/
+      - src/store/
+  - id: share-ui
+    label: Public share
+    kind: app
+    runtime: server
+    group: next-app
+    tech: [react]
+    position: { x: 528, y: 200 }
+    anchors:
+      - src/app/share/
+      - src/app/api/share/
+  - id: analytics-api
+    label: Analytics API
+    kind: api
+    runtime: server
+    group: next-app
+    tech: [nextjs]
+    position: { x: 280, y: 48 }
+    anchors:
+      - src/app/api/websites/
+      - src/app/api/realtime/
+  - id: analytics-reads
+    label: Analytics reads
+    kind: module
+    runtime: server
+    group: next-app
+    tech: [prisma, clickhouse]
+    position: { x: 280, y: 200 }
+    anchors:
+      - "src/queries/sql/**/get*.ts"
+      - "src/queries/sql/**/extract*.ts"
+  - id: platform-api
+    label: Platform API
+    kind: api
+    runtime: server
+    group: next-app
+    tech: [nextjs]
+    position: { x: 280, y: 360 }
+    anchors:
+      - src/app/api/auth/
+      - src/app/api/users/
+      - src/app/api/teams/
+      - src/app/api/admin/
+      - src/app/api/2fa/
+      - src/app/api/me/
+      - src/app/api/boards/
+      - src/app/api/links/
+      - src/app/api/pixels/
+      - src/app/api/config/
+  - id: entity-repo
+    label: Entity repository
+    kind: module
+    runtime: server
+    group: next-app
+    tech: [prisma]
+    position: { x: 528, y: 360 }
+    anchors:
+      - src/queries/prisma/
+  - id: auth
+    label: Auth & permissions
+    kind: module
+    runtime: server
+    group: next-app
+    tech: []
+    position: { x: 32, y: 360 }
+    anchors:
+      - src/app/login/
+      - src/lib/auth.ts
+      - src/lib/jwt.ts
+      - src/permissions/
+  - id: postgres
+    label: Postgres
+    kind: store
+    runtime: external
+    tech: [postgresql, prisma]
+    position: { x: 1100, y: 300 }
+    anchors:
+      - prisma/schema.prisma
+      - prisma.config.ts
+      - src/lib/prisma.ts
+      - db/postgresql/
+  - id: clickhouse
+    label: ClickHouse
+    kind: store
+    runtime: external
+    tech: [clickhouse]
+    optional: true
+    position: { x: 1100, y: 110 }
+    anchors:
+      - src/lib/clickhouse.ts
+      - db/clickhouse/
+  - id: kafka
+    label: Kafka
+    kind: queue
+    runtime: external
+    tech: [kafka]
+    optional: true
+    position: { x: 1100, y: -60 }
+    anchors:
+      - src/lib/kafka.ts
+  - id: redis
+    label: Redis cache
+    kind: cache
+    runtime: external
+    tech: [redis]
+    optional: true
+    position: { x: 1100, y: 500 }
+    anchors:
+      - src/lib/redis.ts
+edges:
+  - from: tracker
+    to: ingest-api
+    kind: http
+    label: POST /api/send · batch · record
+  - from: dashboard-ui
+    to: analytics-api
+    kind: http
+    label: GET /api/websites/:id/*
+  - from: dashboard-ui
+    to: platform-api
+    kind: http
+    label: /api/auth · teams · users
+  - from: share-ui
+    to: analytics-api
+    kind: http
+    label: share-token reads
+  - from: ingest-api
+    to: sql-write
+    kind: imports
+    label: saveEvent · createSession
+  - from: analytics-api
+    to: analytics-reads
+    kind: imports
+    label: get* query fns
+  - from: platform-api
+    to: entity-repo
+    kind: imports
+    label: "@/queries/prisma"
+  - from: platform-api
+    to: auth
+    kind: imports
+    label: checkAuth / permissions
+  - from: sql-write
+    to: postgres
+    kind: writes
+    label: Prisma (default)
+  - from: sql-write
+    to: clickhouse
+    kind: writes
+    label: if CLICKHOUSE_URL
+    optional: true
+  - from: sql-write
+    to: kafka
+    kind: event
+    label: if KAFKA_URL and KAFKA_BROKER
+    optional: true
+  - from: analytics-reads
+    to: postgres
+    kind: sql
+    label: Prisma raw SQL
+  - from: analytics-reads
+    to: clickhouse
+    kind: sql
+    label: ClickHouse client
+    optional: true
+  - from: entity-repo
+    to: postgres
+    kind: sql
+    label: Prisma client
+  - from: auth
+    to: redis
+    kind: sql
+    label: session/token cache
+    optional: true

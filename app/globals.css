@@ -120,13 +120,35 @@
   * {
     @apply border-border outline-ring/50;
     }
+  html {
+    @apply font-sans h-full overflow-hidden;
+    }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground h-full overflow-hidden;
     }
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;
     }
-  html {
-    @apply font-sans;
-    }
+}
+
+.react-flow__controls {
+  overflow: hidden;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md);
+  box-shadow: none !important;
+  background: var(--card) !important;
+}
+
+.react-flow__controls-button {
+  background: var(--card) !important;
+  border-bottom: 1px solid var(--border) !important;
+  fill: var(--foreground) !important;
+}
+
+.react-flow__controls-button:hover {
+  background: var(--muted) !important;
+}
+
+.react-flow__controls-button svg {
+  fill: var(--foreground) !important;
 }

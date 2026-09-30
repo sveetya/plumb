@@ -30,6 +30,12 @@ pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# vendored sample repo
+/umami/node_modules
+/umami/.next
+/umami/.git
 
 # typescript
 *.tsbuildinfo
