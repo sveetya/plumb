@@ -18,10 +18,9 @@ export type PlumbNodeData = {
 
 export type PlumbFlowNode = Node<PlumbNodeData, "plumb">
 
-const STORE_KINDS: NodeKind[] = ["store", "queue", "cache"]
+const HANDLE_CLASS = "!h-2 !w-2 !border-0 !bg-transparent"
 
 export function PlumbNode({ id, data }: NodeProps<PlumbFlowNode>) {
-  const isStore = STORE_KINDS.includes(data.kind)
   const status = data.status
   const intentActive = status !== "idle"
   return (
@@ -36,23 +35,54 @@ export function PlumbNode({ id, data }: NodeProps<PlumbFlowNode>) {
         data.dimmed && "opacity-30",
       )}
     >
-      <Handle type="target" position={Position.Left} className="!size-2" />
-      {isStore ? (
-        <>
-          <Handle
-            type="target"
-            position={Position.Top}
-            id="top"
-            className="!size-2"
-          />
-          <Handle
-            type="source"
-            position={Position.Bottom}
-            id="bottom"
-            className="!size-2"
-          />
-        </>
-      ) : null}
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="t-left"
+        className={HANDLE_CLASS}
+      />
+      <Handle
+        type="target"
+        position={Position.Right}
+        id="t-right"
+        className={HANDLE_CLASS}
+      />
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="t-top"
+        className={HANDLE_CLASS}
+      />
+      <Handle
+        type="target"
+        position={Position.Bottom}
+        id="t-bottom"
+        className={HANDLE_CLASS}
+      />
+      <Handle
+        type="source"
+        position={Position.Left}
+        id="s-left"
+        className={HANDLE_CLASS}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="s-right"
+        className={HANDLE_CLASS}
+      />
+      <Handle
+        type="source"
+        position={Position.Top}
+        id="s-top"
+        className={HANDLE_CLASS}
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="s-bottom"
+        className={HANDLE_CLASS}
+      />
       <div className="flex items-start justify-between gap-2">
         <div className="text-sm font-medium leading-tight">{data.label}</div>
         <div className="flex shrink-0 items-center gap-0.5">
@@ -68,7 +98,6 @@ export function PlumbNode({ id, data }: NodeProps<PlumbFlowNode>) {
         <span>{data.fileCount} files</span>
         {intentActive ? <span>{statusLabel(status)}</span> : null}
       </div>
-      <Handle type="source" position={Position.Right} className="!size-2" />
     </div>
   )
 }

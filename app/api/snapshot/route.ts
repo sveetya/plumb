@@ -1,16 +1,17 @@
 import { NextResponse } from "next/server"
 import { fail, ok } from "@/src/core/envelope"
-import { loadConfig } from "@/src/server/config"
+import { publishedSnapshot } from "@/src/server/published-snapshot"
 import { UnknownRepoError } from "@/src/server/repos"
-import { buildRepoSnapshot } from "@/src/server/snapshot"
 
 export const runtime = "nodejs"
-export const dynamic = "force-dynamic"
 
 export async function GET(request: Request) {
   try {
-    const repo = new URL(request.url).searchParams.get("repo") ?? ""
-    const data = buildRepoSnapshot(repo, loadConfig())
+    const repo = new URL(request.url).searchParams.get("repo")?.trim() || "umami"
+    const data = publishedSnapshot()
+    if (repo !== data.repo.id) {
+      throw new UnknownRepoError(repo)
+    }
     return NextResponse.json(ok(data))
   } catch (error) {
     if (error instanceof UnknownRepoError) {

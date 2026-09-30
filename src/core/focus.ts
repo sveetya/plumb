@@ -9,6 +9,18 @@ import { resolveFileToNode, resolveMatchingNodes } from "./resolve"
 
 const FOCUS_PATH_CAP = 200
 
+export function hasMapSelection(selection: {
+  selectedPath: string | null
+  selectedNodeId: string | null
+  selectedPatternId: string | null
+}): boolean {
+  return (
+    selection.selectedPath !== null ||
+    selection.selectedNodeId !== null ||
+    selection.selectedPatternId !== null
+  )
+}
+
 export function focusForPath(
   path: string,
   model: ArchitectureModel,

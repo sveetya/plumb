@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { X } from "lucide-react"
 import { useTheme } from "next-themes"
 import {
   Background,
@@ -13,7 +14,9 @@ import {
   type Node,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
+import { Button } from "@/components/ui/button"
 import { EDGE_KINDS } from "@/src/core/edge-kinds"
+import { mapEdgeLabel, routeEdge } from "@/src/core/edge-route"
 import { edgeId } from "@/src/core/focus"
 import type { Focus, NodeStatus, RepoSnapshot } from "@/src/core/types"
 import { EdgeLegend } from "./edge-legend"
@@ -28,12 +31,16 @@ export function MapCanvas({
   snapshot,
   focus,
   nodeStatus = IDLE_NODE_STATUS,
+  hasSelection = false,
   onSelectNode,
+  onClearFocus,
 }: {
   snapshot: RepoSnapshot
   focus: Focus
   nodeStatus?: Record<string, NodeStatus>
+  hasSelection?: boolean
   onSelectNode: (nodeId: string) => void
+  onClearFocus?: () => void
 }) {
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -70,6 +77,7 @@ export function MapCanvas({
           minZoom={0.2}
           maxZoom={1.5}
           colorMode={colorMode}
+          defaultEdgeOptions={{ type: "smoothstep" }}
           proOptions={{ hideAttribution: true }}
           onNodeClick={(_event, node) => {
             if (node.type === "group") return
@@ -80,6 +88,19 @@ export function MapCanvas({
           <Background />
           <Controls showInteractive={false} className="border-border bg-card shadow-none" />
         </ReactFlow>
+        {hasSelection ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            data-testid="clear-focus"
+            aria-label="Clear selection"
+            className="absolute top-3 right-3 z-10 bg-card shadow-sm"
+            onClick={onClearFocus}
+          >
+            <X />
+          </Button>
+        ) : null}
         <EdgeLegend />
       </div>
     </ReactFlowProvider>
@@ -166,13 +187,17 @@ function toFlowEdges(snapshot: RepoSnapshot, focus: Focus): Edge[] {
     const dashed = style.dash === "dashed" || optional
     const baseOpacity = optional ? style.optionalOpacity : 1
     const opacity = !active ? baseOpacity : isIncident ? 1 : 0.15
-    const hideLabel = edge.kind === "imports" && !isIncident
+    const handles = routeEdge(edge.from, edge.to, snapshot.model)
     return {
       id,
+      type: "smoothstep",
       source: edge.from,
       target: edge.to,
-      label: hideLabel ? undefined : (edge.label ?? style.label),
+      sourceHandle: handles.sourceHandle,
+      targetHandle: handles.targetHandle,
+      label: mapEdgeLabel(edge, isIncident),
       animated: isIncident,
+      pathOptions: { borderRadius: 16 },
       style: {
         stroke: style.color,
         strokeWidth: isIncident ? 2.5 : 1.5,

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest"
-import { focusForNode, focusForPath, focusForPattern } from "../focus"
+import {
+  focusForNode,
+  focusForPath,
+  focusForPattern,
+  hasMapSelection,
+} from "../focus"
 import { sampleModel } from "./fixtures"
 
 describe("focusForPath", () => {
@@ -55,5 +60,38 @@ describe("focusForPattern", () => {
     )
     expect(focus.kind).toBe("pattern")
     expect(focus.nodeIds).toEqual(["sql-write", "analytics-reads"])
+  })
+})
+
+describe("hasMapSelection", () => {
+  it("is false only when nothing is picked", () => {
+    expect(
+      hasMapSelection({
+        selectedPath: null,
+        selectedNodeId: null,
+        selectedPatternId: null,
+      }),
+    ).toBe(false)
+    expect(
+      hasMapSelection({
+        selectedPath: "src/lib/detect.ts",
+        selectedNodeId: null,
+        selectedPatternId: null,
+      }),
+    ).toBe(true)
+    expect(
+      hasMapSelection({
+        selectedPath: null,
+        selectedNodeId: "ingest-api",
+        selectedPatternId: null,
+      }),
+    ).toBe(true)
+    expect(
+      hasMapSelection({
+        selectedPath: null,
+        selectedNodeId: null,
+        selectedPatternId: "verb-split-queries",
+      }),
+    ).toBe(true)
   })
 })

@@ -1,6 +1,7 @@
 "use client"
 
 import type { RepoSnapshot } from "@/src/core/types"
+import { hasMapSelection } from "@/src/core/focus"
 import { AppHeader } from "./app-header"
 import { FileTree } from "./file-tree"
 import { Inspector } from "./inspector"
@@ -24,7 +25,13 @@ export function Workspace({ snapshot }: { snapshot: RepoSnapshot }) {
         <MapCanvas
           snapshot={snapshot}
           focus={focus.focus}
+          hasSelection={hasMapSelection({
+            selectedPath: focus.selectedPath,
+            selectedNodeId: focus.selectedNodeId,
+            selectedPatternId: focus.selectedPatternId,
+          })}
           onSelectNode={focus.selectNode}
+          onClearFocus={focus.clearFocus}
         />
         <Inspector snapshot={snapshot} focus={focus} />
       </div>

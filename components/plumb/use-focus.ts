@@ -67,6 +67,13 @@ export function useFocus(snapshot: RepoSnapshot) {
     setSelectedTab("patterns")
   }, [])
 
+  const clearFocus = useCallback(() => {
+    setSelectedPath(null)
+    setSelectedNodeId(null)
+    setSelectedPatternId(null)
+    setSelectedTab("node")
+  }, [])
+
   return {
     selectedPath,
     selectedNodeId,
@@ -77,6 +84,7 @@ export function useFocus(snapshot: RepoSnapshot) {
     selectPath,
     selectNode,
     selectPattern,
+    clearFocus,
   }
 }
 
